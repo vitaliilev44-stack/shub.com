@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sHub - PremiumHub v17.0</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        body {
+            background-color: #040914;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            perspective: 1200px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0, 180, 216, 0.15) 0%, rgba(4, 9, 20, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            transform: translate3d(-50%, -50%, 0);
+            will-change: transform;
+        }
+
+        .bg-shapes {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -2; overflow: hidden; perspective: 800px;
+        }
+
+        .bg-shape {
+            position: absolute;
+            color: #00f5d4; font-weight: 900;
+            text-shadow: 0 0 10px #00f5d4, 0 0 20px #00b4d8;
+            opacity: 0.15; animation: float3D linear infinite;
+            transform-style: preserve-3d; will-change: transform, opacity;
+        }
+
+        @keyframes float3D {
+            0% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); opacity: 0.1; }
+            50% { transform: translate3d(0, -100px, 0) rotateX(180deg) rotateY(90deg) rotateZ(180deg); opacity: 0.4; }
+            100% { transform: translate3d(0, 0, 0) rotateX(360deg) rotateY(360deg) rotateZ(360deg); opacity: 0.1; }
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(4, 9, 20, 0.7);
+            backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0, 180, 216, 0.2);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .logo {
+            font-size: 26px; font-weight: 900; letter-spacing: 1px;
+            background: linear-gradient(90deg, #00f5d4, #00b4d8, #0077b6);
+            background-size: 200% auto; -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; cursor: pointer;
+            animation: gradientShift 3s linear infinite;
+        }
+
+        @keyframes gradientShift { to { background-position: 200% center; } }
+
+        nav { display: flex; align-items: center; gap: 15px; }
+
+        .nav-btn {
+            background: transparent; border: none; color: #90e0ef;
+            font-size: 16px; padding: 10px 25px; cursor: pointer; border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); font-weight: 600;
+        }
+
+        .nav-btn:hover { color: #fff; transform: translateY(-2px); background-color: rgba(0, 180, 216, 0.1); }
+        .nav-btn.active { color: #fff; box-shadow: 0 5px 15px rgba(0, 180, 216, 0.4); transform: translateY(-2px); background: linear-gradient(90deg, #00b4d8, #0077b6); }
+
+        main {
+            flex: 1; display: flex; justify-content: center; align-items: center;
+            padding: 40px; perspective: 1200px;
+        }
+
+        .tab-content {
+            display: none; width: 100%; max-width: 1100px;
+            transform-style: preserve-3d; opacity: 0;
+            transform: translate3d(0, 50px, -100px) rotateX(-15deg);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .tab-content.active { display: block; opacity: 1; transform: translate3d(0, 0, 0) rotateX(0deg); }
+
+        .hero { display: flex; align-items: center; justify-content: space-between; gap: 50px; }
+        .hero-text { flex: 1; transform: translate3d(0, 0, 50px); }
+
+        .anim-item { opacity: 0; transform: translate3d(0, 30px, 0); transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .tab-content.active .anim-item { opacity: 1; transform: translate3d(0, 0, 0); }
+        .tab-content.active .anim-item:nth-child(1) { transition-delay: 0.1s; }
+        .tab-content.active .anim-item:nth-child(2) { transition-delay: 0.15s; }
+        .tab-content.active .anim-item:nth-child(3) { transition-delay: 0.2s; }
+        .tab-content.active .anim-item:nth-child(4) { transition-delay: 0.25s; }
+
+        .hero-text h1 { font-size: 54px; margin-bottom: 20px; line-height: 1.1; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .hero-text h1 span { background: linear-gradient(90deg, #00f5d4, #00b4d8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-text p { color: #90e0ef; font-size: 18px; margin-bottom: 30px; line-height: 1.6; }
+
+        .copy-btn {
+            background: linear-gradient(45deg, #0077b6, #00b4d8);
+            color: white; border: none; padding: 18px 40px; font-size: 18px; font-weight: bold; border-radius: 15px;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(0, 119, 182, 0.4);
+            display: inline-flex; align-items: center; gap: 10px;
+            transition: all 0.3s ease; outline: none; margin-bottom: 20px;
+        }
+
+        .copy-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 40px rgba(0, 180, 216, 0.6); }
+        .copy-btn:active { transform: translateY(1px) scale(0.98); }
+        .copy-btn.success { background: linear-gradient(45deg, #00f5d4, #00b4d8); box-shadow: 0 10px 30px rgba(0, 245, 212, 0.6); }
+
+        .code-container {
+            margin-top: 20px; background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(10px); border-radius: 16px;
+            border: 1px solid rgba(0, 180, 216, 0.3); overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column;
+        }
+
+        .code-header {
+            background: rgba(0, 180, 216, 0.1); padding: 12px 20px;
+            display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid rgba(0, 180, 216, 0.2);
+        }
+
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .code-content {
+            padding: 25px; font-family: 'Consolas', monospace; font-size: 14px;
+            color: #caf0f8; line-height: 1.6; white-space: pre;
+            overflow: auto; max-height: 400px;
+        }
+
+        .code-content::-webkit-scrollbar { width: 8px; height: 8px; }
+        .code-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .code-content::-webkit-scrollbar-thumb { background: #00b4d8; border-radius: 4px; }
+        .code-content::-webkit-scrollbar-thumb:hover { background: #00f5d4; }
+
+        .cube-container { width: 300px; height: 300px; perspective: 1000px; }
+        .cube-wrapper { width: 100%; height: 100%; transform-style: preserve-3d; }
+        .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: spinCube 12s infinite linear; }
+
+        @keyframes spinCube {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+
+        .face {
+            position: absolute; width: 200px; height: 200px; left: 50px; top: 50px;
+            background: rgba(0, 180, 216, 0.05); border: 2px solid rgba(0, 180, 216, 0.6);
+            box-shadow: 0 0 30px rgba(0, 180, 216, 0.2) inset;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 48px; font-weight: 900; color: #fff; backdrop-filter: blur(10px);
+            text-shadow: 0 0 10px rgba(0, 180, 216, 1);
+        }
+
+        .front  { transform: translateZ(100px); }
+        .back   { transform: rotateY(180deg) translateZ(100px); }
+        .right  { transform: rotateY(90deg) translateZ(100px); }
+        .left   { transform: rotateY(-90deg) translateZ(100px); }
+        .top    { transform: rotateX(90deg) translateZ(100px); }
+        .bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+        #toast {
+            position: fixed; bottom: 40px; left: 50%;
+            background: linear-gradient(90deg, #00b4d8, #0077b6);
+            color: #fff; padding: 18px 40px; border-radius: 50px; font-weight: bold; font-size: 18px;
+            box-shadow: 0 15px 30px rgba(0, 180, 216, 0.4); z-index: 1000;
+            display: flex; align-items: center; gap: 10px;
+            opacity: 0; transform: translate3d(-50%, 50px, 0) scale(0.9);
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none;
+        }
+
+        #toast.show { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
+
+        @media (max-width: 900px) {
+            .hero { flex-direction: column; text-align: center; }
+            .hero-text h1 { font-size: 40px; }
+            .cube-container { width: 200px; height: 200px; margin-top: 40px; }
+            .face { width: 140px; height: 140px; left: 30px; top: 30px; font-size: 32px; }
+            .front { transform: translateZ(70px); }
+            .back { transform: rotateY(180deg) translateZ(70px); }
+            .right { transform: rotateY(90deg) translateZ(70px); }
+            .left { transform: rotateY(-90deg) translateZ(70px); }
+            .top { transform: rotateX(90deg) translateZ(70px); }
+            .bottom { transform: rotateX(-90deg) translateZ(70px); }
+            nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <textarea id="hidden-textarea" style="position: absolute; left: -9999px;"></textarea>
+    <div class="cursor-glow" id="cursor-glow"></div>
+    <div class="bg-shapes" id="bg-shapes"></div>
+
+    <header>
+        <div class="logo" onclick="switchTab('home')">sHub.</div>
+        <nav>
+            <button class="nav-btn active" onclick="switchTab('home')">Главная</button>
+            <button class="nav-btn" onclick="switchTab('scripts')">Скрипты</button>
+            <button class="nav-btn" onclick="switchTab('about')">О проекте</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="tab-content active">
+            <div class="hero">
+                <div class="hero-text">
+                    <h1 class="anim-item">PREMIUMHUB <br><span>v17.0</span></h1>
+                    <p class="anim-item">Рабочие темы, вкладка биндов, встроенный аимбот и множество визуалов.</p>
+                    
+                    <button class="copy-btn anim-item" id="copy-btn" onclick="copyCode()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Скопировать</span>
+                    </button>
+
+                    <div class="code-container anim-item">
+                        <div class="code-header">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                            <span style="margin-left: 10px; color: #00b4d8; font-size: 12px; font-family: monospace;">PremiumHub_v17.lua</span>
+                        </div>
+                        <!-- НАЧАЛО ПОЛНОГО СКРИПТА -->
+                        <div class="code-content" id="script-code">-- ==========================================
+--  PREMIUMHUB v17.0 — РАБОЧИЕ ТЕМЫ + ВКЛАДКА БИНДОВ
+-- ==========================================
+
+local player = game.Players.LocalPlayer
+local userInput = game:GetService("UserInputService")
+local runService = game:GetService("RunService")
+local camera = workspace.CurrentCamera
+local lighting = game:GetService("Lighting")
+local tweenService = game:GetService("TweenService")
+local debris = game:GetService("Debris")
+local players = game:GetService("Players")
+
+-- ==========================================
+--  БИНДЫ (изменяемые)
+-- ==========================================
+local BINDS = {
+    TOGGLE_MENU = Enum.KeyCode.M,
+    TOGGLE_AIMBOT = Enum.KeyCode.Q,
+    TOGGLE_SAFEZONE = Enum.KeyCode.B,
+    TOGGLE_FOLLOW = Enum.KeyCode.F,
+    TOGGLE_VIEW = Enum.KeyCode.V,
+    TOGGLE_TP = Enum.KeyCode.T,
+    TOGGLE_BOOST = Enum.KeyCode.R,
+    TOGGLE_SHIFTLOCK = Enum.KeyCode.L,
+    TOGGLE_STICK = Enum.KeyCode.G,
+    TOGGLE_WALKTRAIL = Enum.KeyCode.X,
+    TOGGLE_43 = Enum.KeyCode.N,
+    UNLOAD = Enum.KeyCode.U,
+}
+
+local BIND_LABELS = {
+    TOGGLE_MENU = "Открыть/закрыть меню",
+    TOGGLE_AIMBOT = "Aimbot",
+    TOGGLE_SAFEZONE = "SafeZone",
+    TOGGLE_FOLLOW = "Автоходьба",
+    TOGGLE_VIEW = "View (камера)",
+    TOGGLE_TP = "ТП к игроку",
+    TOGGLE_BOOST = "Speed Boost",
+    TOGGLE_SHIFTLOCK = "ShiftLock",
+    TOGGLE_STICK = "Стик лёжа",
+    TOGGLE_WALKTRAIL = "Визуалы ходьбы",
+    TOGGLE_43 = "4:3 Растяг",
+    UNLOAD = "Выгрузить скрипт",
+}
+
+local BIND_ORDER = {
+    "TOGGLE_MENU","TOGGLE_AIMBOT","TOGGLE_SAFEZONE","TOGGLE_FOLLOW",
+    "TOGGLE_VIEW","TOGGLE_TP","TOGGLE_BOOST","TOGGLE_SHIFTLOCK",
+    "TOGGLE_STICK","TOGGLE_WALKTRAIL","TOGGLE_43","UNLOAD"
+}
+
+local SAFE_Y = -100
+local BOOST_SPEED = 250
+local BOOST_DURATION = 0.4
+local DEFAULT_FOV = 70
+local STRETCH_FOV = 74
+local STICK_DISTANCE = 0.8
+local STICK_HEIGHT = -2.85
+local STICK_LIE_ANGLE = 90
+
+local THEMES = {
+    Rose = {
+        Background = Color3.fromRGB(45, 20, 30),
+        Frame = Color3.fromRGB(60, 25, 40),
+        Panel = Color3.fromRGB(50, 22, 34),
+        Accent = Color3.fromRGB(255, 105, 180),
+        AccentDark = Color3.fromRGB(200, 50, 120),
+        Text = Color3.fromRGB(255, 240, 245),
+        TextDim = Color3.fromRGB(210, 180, 190),
+        Shadow = Color3.fromRGB(20, 10, 15),
+    },
+    Dark = {
+        Background = Color3.fromRGB(18, 18, 20),
+        Frame = Color3.fromRGB(28, 28, 30),
+        Panel = Color3.fromRGB(24, 24, 26),
+        Accent = Color3.fromRGB(230, 230, 230),
+        AccentDark = Color3.fromRGB(70, 70, 70),
+        Text = Color3.fromRGB(240, 240, 240),
+        TextDim = Color3.fromRGB(150, 150, 150),
+        Shadow = Color3.fromRGB(0, 0, 0),
+    },
+    Ocean = {
+        Background = Color3.fromRGB(12, 28, 48),
+        Frame = Color3.fromRGB(18, 42, 72),
+        Panel = Color3.fromRGB(15, 35, 58),
+        Accent = Color3.fromRGB(80, 200, 255),
+        AccentDark = Color3.fromRGB(25, 90, 140),
+        Text = Color3.fromRGB(230, 245, 255),
+        TextDim = Color3.fromRGB(140, 180, 210),
+        Shadow = Color3.fromRGB(3, 10, 20),
+    },
+    Neon = {
+        Background = Color3.fromRGB(18, 8, 35),
+        Frame = Color3.fromRGB(32, 12, 58),
+        Panel = Color3.fromRGB(25, 10, 48),
+        Accent = Color3.fromRGB(190, 90, 255),
+        AccentDark = Color3.fromRGB(90, 30, 150),
+        Text = Color3.fromRGB(245, 230, 255),
+        TextDim = Color3.fromRGB(180, 150, 210),
+        Shadow = Color3.fromRGB(8, 3, 15),
+    },
+    Matrix = {
+        Background = Color3.fromRGB(4, 18, 4),
+        Frame = Color3.fromRGB(8, 30, 8),
+        Panel = Color3.fromRGB(6, 24, 6),
+        Accent = Color3.fromRGB(0, 255, 80),
+        AccentDark = Color3.fromRGB(0, 100, 30),
+        Text = Color3.fromRGB(200, 255, 200),
+        TextDim = Color3.fromRGB(100, 180, 100),
+        Shadow = Color3.fromRGB(0, 8, 0),
+    },
+    Gold = {
+        Background = Color3.fromRGB(32, 22, 8),
+        Frame = Color3.fromRGB(48, 35, 12),
+        Panel = Color3.fromRGB(40, 30, 10),
+        Accent = Color3.fromRGB(255, 200, 60),
+        AccentDark = Color3.fromRGB(150, 105, 15),
+        Text = Color3.fromRGB(255, 245, 210),
+        TextDim = Color3.fromRGB(200, 170, 120),
+        Shadow = Color3.fromRGB(12, 8, 0),
+    },
+    Red = {
+        Background = Color3.fromRGB(38, 10, 12),
+        Frame = Color3.fromRGB(55, 15, 18),
+        Panel = Color3.fromRGB(45, 12, 15),
+        Accent = Color3.fromRGB(255, 70, 70),
+        AccentDark = Color3.fromRGB(150, 30, 30),
+        Text = Color3.fromRGB(255, 235, 235),
+        TextDim = Color3.fromRGB(200, 150, 150),
+        Shadow = Color3.fromRGB(15, 4, 4),
+    },
+}
+
+local THEME_ORDER = {"Rose","Dark","Ocean","Neon","Matrix","Gold","Red"}
+
+local currentThemeName = "Rose"
+local COLORS = THEMES[currentThemeName]
+
+local currentWS = 16
+local currentJP = 50
+local safeZoneEnabled = false
+local safePlatform = nil
+local savedPosition = nil
+local followEnabled = false
+local followTarget = nil
+local followConnection = nil
+local aimbotEnabled = false
+local aimbotTargets = {}
+local aimConnection = nil
+local viewEnabled = false
+local viewTarget = nil
+local viewConnection = nil
+local tpEnabled = false
+local espEnabled = false
+local espBoxes = {}
+local espConnection = nil
+local speedBoostEnabled = false
+local speedBoostConnection = nil
+local shiftLockEnabled = false
+local shiftLockConnection = nil
+local fakeName = ""
+local ratio43Enabled = false
+local particlesEnabled = false
+local particlesThread = nil
+local jumpCircleEnabled = false
+local jumpCircleConnection = nil
+local stickEnabled = false
+local stickConnection = nil
+local stickIndex = 1
+local walkTrailEnabled = false
+local walkTrailConnection = nil
+local lastTrailPos = nil
+local trailCounter = 0
+
+-- Бины: состояние захвата клавиши
+local isCapturingBind = false
+local capturingBindKey = nil
+local bindButtons = {}
+
+-- Список {obj, role, prop} для темы
+local themeList = {}
+
+local gui, frame, scrollingFrame, playerButtons = nil, nil, nil, {}
+
+local safeZoneBtn, followBtn, speedBoostBtn, shiftLockBtn, unloadBtn
+local aimbotBtn, espToggle, clearTargetBtn, stickBtn, walkTrailBtn
+local fakeNameInput, fakeNameApplyBtn, fakeNameResetBtn
+local ratioBtn, particlesBtn, jumpCircleBtn
+local viewBtn, tpBtn
+
+-- ==========================================
+--  РЕГИСТРАЦИЯ ЭЛЕМЕНТОВ ДЛЯ ТЕМ
+-- ==========================================
+local function reg(obj, role, prop)
+    table.insert(themeList, {obj = obj, role = role, prop = prop})
+    return obj
+end
+
+-- ==========================================
+--  ПРИМЕНЕНИЕ ТЕМЫ
+-- ==========================================
+local function refreshBtnState(btn, active, onText, offText)
+    if not btn then return end
+    if onText then
+        btn.Text = active and onText or offText
+    end
+    btn.BackgroundColor3 = active and COLORS.Accent or COLORS.AccentDark
+    btn.BackgroundTransparency = active and 0.05 or 0.35
+    btn.TextColor3 = active and Color3.fromRGB(20, 20, 20) or COLORS.Text
+end
+
+local function applyTheme(themeName)
+    local theme = THEMES[themeName]
+    if not theme then return end
+    currentThemeName = themeName
+    COLORS = theme
+
+    -- Перекрашиваем все зарегистрированные элементы
+    for _, item in ipairs(themeList) do
+        if item.obj and item.obj.Parent then
+            local color = theme[item.role]
+            if color then
+                pcall(function() item.obj[item.prop] = color end)
+            end
+        end
+    end
+
+    -- Восстанавливаем АКТИВНЫЕ состояния кнопок (те что ВКЛ)
+    if safeZoneBtn then
+        safeZoneBtn.BackgroundColor3 = safeZoneEnabled and theme.Accent or theme.AccentDark
+    end
+    if followBtn then
+        followBtn.BackgroundColor3 = followEnabled and theme.Accent or theme.AccentDark
+    end
+    if speedBoostBtn then
+        speedBoostBtn.BackgroundColor3 = speedBoostEnabled and theme.Accent or theme.AccentDark
+    end
+    if shiftLockBtn then
+        shiftLockBtn.BackgroundColor3 = shiftLockEnabled and theme.Accent or theme.AccentDark
+    end
+    if aimbotBtn then
+        aimbotBtn.BackgroundColor3 = aimbotEnabled and theme.Accent or theme.AccentDark
+    end
+    if viewBtn then
+        viewBtn.BackgroundColor3 = viewEnabled and theme.Accent or theme.AccentDark
+    end
+    if tpBtn then
+        tpBtn.BackgroundColor3 = tpEnabled and theme.Accent or theme.AccentDark
+    end
+    if stickBtn then
+        stickBtn.BackgroundColor3 = stickEnabled and theme.Accent or theme.AccentDark
+    end
+    if espToggle then
+        espToggle.BackgroundColor3 = espEnabled and theme.Accent or theme.AccentDark
+    end
+    if ratioBtn then
+        ratioBtn.BackgroundColor3 = ratio43Enabled and theme.Accent or theme.AccentDark
+    end
+    if particlesBtn then
+        particlesBtn.BackgroundColor3 = particlesEnabled and theme.Accent or theme.AccentDark
+    end
+    if jumpCircleBtn then
+        jumpCircleBtn.BackgroundColor3 = jumpCircleEnabled and theme.Accent or theme.AccentDark
+    end
+    if walkTrailBtn then
+        walkTrailBtn.BackgroundColor3 = walkTrailEnabled and theme.Accent or theme.AccentDark
+    end
+
+    -- Подсветка выбранных игроков
+    for p, btn in pairs(playerButtons) do
+        if aimbotTargets[p] then
+            btn.BackgroundColor3 = theme.Accent
+            btn.BackgroundTransparency = 0.05
+            btn.TextColor3 = Color3.fromRGB(20, 20, 20)
+        else
+            btn.BackgroundColor3 = theme.AccentDark
+            btn.BackgroundTransparency = 0.35
+            btn.TextColor3 = theme.Text
+        end
+    end
+
+    print("[PremiumHub] Тема: " .. themeName)
+end
+
+-- ==========================================
+--  ВКЛ/ВЫКЛ ВИЗУАЛЬНО
+-- ==========================================
+local function setBtnState(btn, active, onText, offText)
+    if not btn then return end
+    btn.Text = active and onText or offText
+    btn.BackgroundColor3 = active and COLORS.Accent or COLORS.AccentDark
+    btn.BackgroundTransparency = active and 0.05 or 0.35
+    btn.TextColor3 = active and Color3.fromRGB(20, 20, 20) or COLORS.Text
+end
+
+-- ==========================================
+--  СПЛАШ
+-- ==========================================
+local function createSplash()
+    local splashGui = Instance.new("ScreenGui")
+    splashGui.Name = "PremiumSplash"
+    splashGui.Parent = player:WaitForChild("PlayerGui")
+    splashGui.ResetOnSpawn = false
+    splashGui.DisplayOrder = 999
+
+    local blur = Instance.new("BlurEffect")
+    blur.Size = 24
+    blur.Parent = lighting
+
+    local sf = Instance.new("Frame")
+    sf.Size = UDim2.new(1, 0, 1, 0)
+    sf.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    sf.BackgroundTransparency = 0.35
+    sf.BorderSizePixel = 0
+    sf.Parent = splashGui
+
+    local bt = Instance.new("TextLabel")
+    bt.Size = UDim2.new(0.9, 0, 0.3, 0)
+    bt.Position = UDim2.new(0.05, 0, 0.35, 0)
+    bt.BackgroundTransparency = 1
+    bt.Text = "СДЕЛАНО ПРЕМИУМОМ"
+    bt.TextColor3 = COLORS.Accent
+    bt.TextScaled = true
+    bt.Font = Enum.Font.GothamBold
+    bt.TextStrokeTransparency = 0.4
+    bt.TextStrokeColor3 = COLORS.Text
+    bt.TextTransparency = 1
+    bt.Parent = sf
+
+    tweenService:Create(bt, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
+    task.wait(2.2)
+    tweenService:Create(bt, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+    tweenService:Create(sf, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    task.wait(0.5)
+    splashGui:Destroy()
+    blur:Destroy()
+
+    local lg = Instance.new("ScreenGui")
+    lg.Name = "PremiumLoading"
+    lg.Parent = player:WaitForChild("PlayerGui")
+    lg.ResetOnSpawn = false
+    lg.DisplayOrder = 999
+
+    local circle = Instance.new("Frame")
+    circle.Size = UDim2.new(0, 120, 0, 120)
+    circle.Position = UDim2.new(0.5, -60, 0.5, -60)
+    circle.BackgroundColor3 = COLORS.AccentDark
+    circle.BackgroundTransparency = 0.2
+    circle.BorderSizePixel = 0
+    circle.Parent = lg
+    local c1 = Instance.new("UICorner")
+    c1.CornerRadius = UDim.new(1, 0)
+    c1.Parent = circle
+
+    local sp = Instance.new("Frame")
+    sp.Size = UDim2.new(0, 100, 0, 100)
+    sp.Position = UDim2.new(0.5, -50, 0.5, -50)
+    sp.BackgroundTransparency = 1
+    sp.BorderSizePixel = 4
+    sp.BorderColor3 = COLORS.Accent
+    sp.Parent = circle
+    local c2 = Instance.new("UICorner")
+    c2.CornerRadius = UDim.new(1, 0)
+    c2.Parent = sp
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0.8, 0, 0.4, 0)
+    lbl.Position = UDim2.new(0.1, 0, 0.3, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = "by Премиум"
+    lbl.TextColor3 = COLORS.Text
+    lbl.TextSize = 18
+    lbl.Font = Enum.Font.GothamBold
+    lbl.Parent = circle
+
+    local rc = runService.Heartbeat:Connect(function(dt)
+        sp.Rotation = sp.Rotation + dt * 200
+    end)
+
+    task.wait(2.4)
+    rc:Disconnect()
+    lg:Destroy()
+    createGUI()
+end
+
+-- ==========================================
+--  ВИЗУАЛЫ ХОДЬБЫ
+-- ==========================================
+local function spawnWalkTrail()
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    if Vector3.new(hrp.Velocity.X, 0, hrp.Velocity.Z).Magnitude < 2 then return end
+    trailCounter = trailCounter + 1
+
+    local ring = Instance.new("Part")
+    ring.Shape = Enum.PartType.Cylinder
+    ring.Size = Vector3.new(0.15, 2.4, 2.4)
+    ring.Material = Enum.Material.Neon
+    ring.Color = COLORS.Accent
+    ring.Transparency = 0.25
+    ring.Anchored = true
+    ring.CanCollide = false
+    ring.CastShadow = false
+    ring.CFrame = CFrame.new(hrp.Position - Vector3.new(0, 2.8, 0)) * CFrame.Angles(0, 0, math.rad(90))
+    ring.Parent = workspace
+    tweenService:Create(ring, TweenInfo.new(0.6), {Size = Vector3.new(0.15, 4.5, 4.5), Transparency = 1}):Play()
+    debris:AddItem(ring, 0.7)
+
+    if trailCounter % 3 == 0 then
+        local spark = Instance.new("Part")
+        spark.Shape = Enum.PartType.Ball
+        spark.Size = Vector3.new(0.5, 0.5, 0.5)
+        spark.Material = Enum.Material.Neon
+        spark.Color = COLORS.Accent
+        spark.Transparency = 0.2
+        spark.Anchored = true
+        spark.CanCollide = false
+        spark.CastShadow = false
+        spark.Position = hrp.Position
+        spark.Parent = workspace
+        tweenService:Create(spark, TweenInfo.new(0.7), {
+            Position = spark.Position + Vector3.new(math.random(-15,15)/10, math.random(10,25)/10, math.random(-15,15)/10),
+            Size = Vector3.new(0, 0, 0), Transparency = 1
+        }):Play()
+        debris:AddItem(spark, 0.9)
+    end
+end
+
+local function toggleWalkTrail()
+    walkTrailEnabled = not walkTrailEnabled
+    if walkTrailEnabled then
+        if walkTrailConnection then walkTrailConnection:Disconnect() end
+        trailCounter = 0
+        walkTrailConnection = runService.Heartbeat:Connect(function()
+            if not walkTrailEnabled then return end
+            local now = tick()
+            if not lastTrailPos or now - lastTrailPos > 0.08 then
+                lastTrailPos = now
+                spawnWalkTrail()
+            end
+        end)
+    else
+        if walkTrailConnection then walkTrailConnection:Disconnect(); walkTrailConnection = nil end
+        for _, obj in ipairs(workspace:GetChildren()) do
+            if obj:IsA("Part") and obj.Material == Enum.Material.Neon and obj.Anchored and not obj.CanCollide then
+                obj:Destroy()
+            end
+        end
+    end
+    setBtnState(walkTrailBtn, walkTrailEnabled, "Визуалы ходьбы [ВКЛ]", "Визуалы ходьбы [ВЫКЛ]")
+end
+
+-- ==========================================
+--  НИК
+-- ==========================================
+local function applyFakeName()
+    local char = player.Character
+    if not char then return end
+    local head = char:FindFirstChild("Head")
+    local hum = char:FindFirstChild("Humanoid")
+    if hum then
+        hum.DisplayName = (fakeName ~= "" and fakeName) or player.DisplayName
+    end
+    if head then
+        local old = head:FindFirstChild("FakeNameTag")
+        if old then old:Destroy() end
+    end
+    if fakeName ~= "" and head then
+        local bb = Instance.new("BillboardGui")
+        bb.Name = "FakeNameTag"
+        bb.Size = UDim2.new(0, 220, 0, 50)
+        bb.StudsOffset = Vector3.new(0, 2.7, 0)
+        bb.AlwaysOnTop = true
+        bb.Parent = head
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, 0, 1, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = fakeName
+        lbl.TextColor3 = COLORS.Accent
+        lbl.TextStrokeTransparency = 0
+        lbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        lbl.TextScaled = true
+        lbl.Font = Enum.Font.GothamBold
+        lbl.Parent = bb
+    end
+end
+
+-- ==========================================
+--  ВЫГРУЗКА
+-- ==========================================
+local function unloadScript()
+    for _, conn in ipairs({aimConnection, espConnection, followConnection, viewConnection, stickConnection, speedBoostConnection, shiftLockConnection, jumpCircleConnection, walkTrailConnection}) do
+        if conn then pcall(function() conn:Disconnect() end) end
+    end
+    aimbotEnabled = false; espEnabled = false; followEnabled = false; viewEnabled = false
+    tpEnabled = false; stickEnabled = false; speedBoostEnabled = false; shiftLockEnabled = false
+    jumpCircleEnabled = false; walkTrailEnabled = false
+    for _, b in pairs(espBoxes) do if b and b.Parent then b:Destroy() end end
+    espBoxes = {}
+    destroySafePlatform(); safeZoneEnabled = false; savedPosition = nil
+    particlesEnabled = false; particlesThread = nil; stopCubeParticles()
+    if ratio43Enabled then
+        tweenService:Create(camera, TweenInfo.new(0.3), {FieldOfView = DEFAULT_FOV}):Play()
+    end
+    ratio43Enabled = false
+    fakeName = ""
+    local c2 = player.Character
+    if c2 then
+        local h = c2:FindFirstChild("Humanoid")
+        if h then h.DisplayName = player.DisplayName; h.AutoRotate = true end
+        local head = c2:FindFirstChild("Head")
+        if head then
+            local t = head:FindFirstChild("FakeNameTag")
+            if t then t:Destroy() end
+        end
+    end
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj.Name == "JumpCircle" or (obj:IsA("Part") and obj.Material == Enum.Material.Neon and obj.Anchored and not obj.CanCollide) then
+            obj:Destroy()
+        end
+    end
+    if gui then gui:Destroy(); gui = nil end
+    for _, g in ipairs(player:WaitForChild("PlayerGui"):GetChildren()) do
+        if g.Name == "PremiumSplash" or g.Name == "PremiumLoading" then g:Destroy() end
+    end
+    print("[PremiumHub] Выгружено.")
+end
+
+-- ==========================================
+--  4:3 РАСТЯГ
+-- ==========================================
+local function toggleRatio43()
+    ratio43Enabled = not ratio43Enabled
+    if ratio43Enabled then
+        DEFAULT_FOV = camera.FieldOfView
+        tweenService:Create(camera, TweenInfo.new(0.4), {FieldOfView = STRETCH_FOV}):Play()
+    else
+        tweenService:Create(camera, TweenInfo.new(0.4), {FieldOfView = DEFAULT_FOV}):Play()
+    end
+    setBtnState(ratioBtn, ratio43Enabled, "4:3 Растяг [ВКЛ]", "4:3 Растяг [ВЫКЛ]")
+end
+
+-- ==========================================
+--  КУБИКИ
+-- ==========================================
+local function startCubeParticles()
+    if particlesThread then return end
+    particlesThread = task.spawn(function()
+        while particlesEnabled do
+            local char = player.Character
+            if char then
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local cube = Instance.new("Part")
+                    cube.Size = Vector3.new(0.5, 0.5, 0.5)
+                    cube.Shape = Enum.PartType.Block
+                    cube.Material = Enum.Material.Neon
+                    cube.Color = COLORS.Accent
+                    cube.Anchored = true
+                    cube.CanCollide = false
+                    cube.CastShadow = false
+                    cube.Transparency = 0.1
+                    local frontPos = hrp.Position + hrp.CFrame.LookVector * 3.5
+                    cube.Position = frontPos + Vector3.new(math.random(-20,20)/10, math.random(-15,15)/10, math.random(-20,20)/10)
+                    cube.Orientation = Vector3.new(math.random(0,360), math.random(0,360), math.random(0,360))
+                    cube.Parent = workspace
+                    local endPos = cube.Position + Vector3.new(math.random(-15,15)/10, math.random(15,30)/10, math.random(-15,15)/10)
+                    tweenService:Create(cube, TweenInfo.new(0.9), {Position = endPos, Transparency = 1, Size = Vector3.new(0.05,0.05,0.05)}):Play()
+                    debris:AddItem(cube, 1.1)
+                end
+            end
+            task.wait(0.08)
+        end
+    end)
+end
+
+function stopCubeParticles()
+    particlesThread = nil
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj:IsA("Part") and obj.Shape == Enum.PartType.Block and obj.Material == Enum.Material.Neon and obj.Anchored then
+            obj:Destroy()
+        end
+    end
+end
+
+local function toggleParticles()
+    particlesEnabled = not particlesEnabled
+    if particlesEnabled then
+        startCubeParticles()
+    else
+        stopCubeParticles()
+    end
+    setBtnState(particlesBtn, particlesEnabled, "Кубики [ВКЛ]", "Кубики [ВЫКЛ]")
+end
+
+-- ==========================================
+--  JUMP CIRCLE
+-- ==========================================
+local function spawnJumpCircle()
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    local sphere = Instance.new("Part")
+    sphere.Name = "JumpCircle"
+    sphere.Shape = Enum.PartType.Ball
+    sphere.Size = Vector3.new(6, 6, 6)
+    sphere.Material = Enum.Material.Glass
+    sphere.Color = COLORS.Accent
+    sphere.Transparency = 0.5
+    sphere.Anchored = true
+    sphere.CanCollide = false
+    sphere.CastShadow = false
+    sphere.Position = hrp.Position
+    sphere.Parent = workspace
+    local inner = Instance.new("Part")
+    inner.Shape = Enum.PartType.Ball
+    inner.Size = Vector3.new(5.5, 5.5, 5.5)
+    inner.Material = Enum.Material.Neon
+    inner.Color = COLORS.Accent
+    inner.Transparency = 0.85
+    inner.Anchored = true
+    inner.CanCollide = false
+    inner.CastShadow = false
+    inner.Position = hrp.Position
+    inner.Parent = sphere
+    tweenService:Create(sphere, TweenInfo.new(0.6), {Size = Vector3.new(10,10,10), Transparency = 1}):Play()
+    tweenService:Create(inner, TweenInfo.new(0.6), {Size = Vector3.new(9,9,9), Transparency = 1}):Play()
+    debris:AddItem(sphere, 1)
+end
+
+local function toggleJumpCircle()
+    jumpCircleEnabled = not jumpCircleEnabled
+    if jumpCircleEnabled then
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChild("Humanoid")
+            if hum then
+                if jumpCircleConnection then jumpCircleConnection:Disconnect() end
+                jumpCircleConnection = hum.StateChanged:Connect(function(_, newState)
+                    if newState == Enum.HumanoidStateType.Jumping or newState == Enum.HumanoidStateType.Freefall then
+                        spawnJumpCircle()
+                    end
+                end)
+            end
+        end
+    else
+        if jumpCircleConnection then jumpCircleConnection:Disconnect(); jumpCircleConnection = nil end
+    end
+    setBtnState(jumpCircleBtn, jumpCircleEnabled, "Jump Circle [ВКЛ]", "Jump Circle [ВЫКЛ]")
+end
+
+-- ==========================================
+--  СТИК ЛЁЖА
+-- ==========================================
+local function teleportBehindPlayer(target)
+    if not target then return end
+    local tc = target.Character
+    if not tc then return end
+    local tr = tc:FindFirstChild("HumanoidRootPart")
+    if not tr then return end
+    local mc = player.Character
+    if not mc then return end
+    local mr = mc:FindFirstChild("HumanoidRootPart")
+    if not mr then return end
+    local look = tr.CFrame.LookVector
+    local flatLook = Vector3.new(look.X, 0, look.Z)
+    if flatLook.Magnitude < 0.01 then
+        flatLook = Vector3.new(0, 0, -1)
+    else
+        flatLook = flatLook.Unit
+    end
+    local underPos = Vector3.new(
+        tr.Position.X - flatLook.X * STICK_DISTANCE,
+        tr.Position.Y + STICK_HEIGHT,
+        tr.Position.Z - flatLook.Z * STICK_DISTANCE
+    )
+    local yaw = math.atan2(-flatLook.X, -flatLook.Z)
+    mr.CFrame = CFrame.new(underPos) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(STICK_LIE_ANGLE), 0, 0)
+end
+
+local function getValidTargets()
+    local valid = {}
+    for p, _ in pairs(aimbotTargets) do
+        if p and p.Parent and p.Character then
+            local tr = p.Character:FindFirstChild("HumanoidRootPart")
+            if tr then table.insert(valid, p) end
+        end
+    end
+    return valid
+end
+
+local function stickLoop()
+    local valid = getValidTargets()
+    if #valid == 0 then return end
+    if stickIndex > #valid then stickIndex = 1 end
+    if stickIndex < 1 then stickIndex = 1 end
+    teleportBehindPlayer(valid[stickIndex])
+    stickIndex = stickIndex + 1
+    if stickIndex > #valid then stickIndex = 1 end
+end
+
+local function startStick()
+    if stickConnection then stickConnection:Disconnect() end
+    stickConnection = runService.Heartbeat:Connect(function()
+        if not stickEnabled then return end
+        stickLoop()
+    end)
+end
+
+local function toggleStick()
+    stickEnabled = not stickEnabled
+    if stickEnabled then
+        stickIndex = 1
+        startStick()
+    else
+        if stickConnection then stickConnection:Disconnect(); stickConnection = nil end
+    end
+    setBtnState(stickBtn, stickEnabled, "Стик лёжа [ВКЛ]", "Стик лёжа [ВЫКЛ]")
+end
+
+-- ==========================================
+--  SAFEZONE
+-- ==========================================
+function createSafePlatform(pos)
+    if safePlatform then safePlatform:Destroy() end
+    safePlatform = Instance.new("Part")
+    safePlatform.Size = Vector3.new(60, 4, 60)
+    safePlatform.Position = Vector3.new(pos.X, SAFE_Y - 2, pos.Z)
+    safePlatform.Anchored = true
+    safePlatform.CanCollide = true
+    safePlatform.Transparency = 0.3
+    safePlatform.BrickColor = BrickColor.new("Bright violet")
+    safePlatform.Material = Enum.Material.Neon
+    safePlatform.Parent = workspace
+end
+
+function destroySafePlatform()
+    if safePlatform then safePlatform:Destroy(); safePlatform = nil end
+end
+
+local function toggleSafeZone()
+    local c = player.Character
+    if not c then return end
+    local hrp = c:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    if not safeZoneEnabled then
+        savedPosition = hrp.Position
+        createSafePlatform(savedPosition)
+        task.wait(0.15)
+        hrp.CFrame = CFrame.new(savedPosition.X, SAFE_Y, savedPosition.Z)
+        safeZoneEnabled = true
+    else
+        if savedPosition then hrp.CFrame = CFrame.new(savedPosition) end
+        destroySafePlatform()
+        safeZoneEnabled = false
+        savedPosition = nil
+    end
+    setBtnState(safeZoneBtn, safeZoneEnabled, "SafeZone [ВКЛ]", "SafeZone [ВЫКЛ]")
+end
+
+-- ==========================================
+--  FOLLOW / SPEED / SHIFT
+-- ==========================================
+local function stopFollow()
+    followEnabled = false
+    if followConnection then followConnection:Disconnect(); followConnection = nil end
+    local c = player.Character
+    if c then
+        local h = c:FindFirstChild("Humanoid")
+        if h then h.WalkSpeed = currentWS end
+    end
+end
+
+local function startFollow(target)
+    if not target then return end
+    followTarget = target
+    followEnabled = true
+    if followConnection then followConnection:Disconnect() end
+    followConnection = runService.Heartbeat:Connect(function()
+        if not followEnabled then return end
+        local c = player.Character
+        if not c then return end
+        local h = c:FindFirstChild("Humanoid")
+        if not h then return end
+        local tChar = followTarget.Character
+        if tChar then
+            local tr = tChar:FindFirstChild("HumanoidRootPart")
+            if tr then
+                h.WalkSpeed = 30
+                local d = (tr.Position - c.HumanoidRootPart.Position).Magnitude
+                if d > 3 then h:MoveTo(tr.Position) else h:MoveTo(c.HumanoidRootPart.Position) end
+            end
+        else
+            stopFollow()
+        end
+    end)
+end
+
+local function toggleFollow()
+    if followEnabled then
+        stopFollow()
+    else
+        for p, _ in pairs(aimbotTargets) do
+            if p.Character then startFollow(p); break end
+        end
+        if not followEnabled then
+            local closest, cd = nil, math.huge
+            local c = player.Character
+            if c and c:FindFirstChild("HumanoidRootPart") then
+                for _, o in ipairs(players:GetPlayers()) do
+                    if o ~= player and o.Character and o.Character:FindFirstChild("HumanoidRootPart") then
+                        local d = (o.Character.HumanoidRootPart.Position - c.HumanoidRootPart.Position).Magnitude
+                        if d < cd then cd = d; closest = o end
+                    end
+                end
+            end
+            if closest then startFollow(closest) end
+        end
+    end
+    setBtnState(followBtn, followEnabled, "Автоходьба [ВКЛ]", "Автоходьба [ВЫКЛ]")
+end
+
+local function stopSpeedBoost()
+    speedBoostEnabled = false
+    if speedBoostConnection then speedBoostConnection:Disconnect(); speedBoostConnection = nil end
+    local c = player.Character
+    if c then
+        local h = c:FindFirstChild("Humanoid")
+        if h then h.WalkSpeed = currentWS end
+    end
+end
+
+local function startSpeedBoost()
+    if speedBoostConnection then speedBoostConnection:Disconnect() end
+    local active, endTime = false, 0
+    speedBoostConnection = runService.Heartbeat:Connect(function()
+        local c = player.Character
+        if not c then return end
+        local h = c:FindFirstChild("Humanoid")
+        if not h then return end
+        local st = h:GetState()
+        local isJump = (st == Enum.HumanoidStateType.Jumping or st == Enum.HumanoidStateType.Freefall)
+        local rPressed = userInput:IsKeyDown(Enum.KeyCode.D)
+        if isJump and rPressed and not active then
+            active = true
+            endTime = tick() + BOOST_DURATION
+            h.WalkSpeed = BOOST_SPEED
+        end
+        if active and tick() >= endTime then
+            active = false
+            h.WalkSpeed = currentWS
+        end
+        if not active and not isJump then
+            if h.WalkSpeed ~= currentWS and not followEnabled then h.WalkSpeed = currentWS end
+        end
+    end)
+end
+
+local function toggleSpeedBoost()
+    speedBoostEnabled = not speedBoostEnabled
+    if speedBoostEnabled then
+        startSpeedBoost()
+    else
+        stopSpeedBoost()
+    end
+    setBtnState(speedBoostBtn, speedBoostEnabled, "Speed Boost [ВКЛ]", "Speed Boost [ВЫКЛ]")
+end
+
+local function stopShiftLock()
+    shiftLockEnabled = false
+    if shiftLockConnection then shiftLockConnection:Disconnect(); shiftLockConnection = nil end
+    local c = player.Character
+    if c then
+        local h = c:FindFirstChild("Humanoid")
+        if h then h.AutoRotate = true end
+    end
+end
+
+local function startShiftLock()
+    if shiftLockConnection then shiftLockConnection:Disconnect() end
+    shiftLockConnection = runService.Heartbeat:Connect(function()
+        local c = player.Character
+        if not c then return end
+        local hrp = c:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        local h = c:FindFirstChild("Humanoid")
+        if h then h.AutoRotate = false end
+        local cam = workspace.CurrentCamera
+        if not cam then return end
+        local lv = cam.CFrame.LookVector
+        local fl = Vector3.new(lv.X, 0, lv.Z)
+        if fl.Magnitude > 0.01 then
+            hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + fl)
+        end
+    end)
+end
+
+local function toggleShiftLock()
+    shiftLockEnabled = not shiftLockEnabled
+    if shiftLockEnabled then
+        startShiftLock()
+    else
+        stopShiftLock()
+    end
+    setBtnState(shiftLockBtn, shiftLockEnabled, "ShiftLock [ВКЛ]", "ShiftLock [ВЫКЛ]")
+end
+
+-- ==========================================
+--  VIEW / TP / AIM / ESP
+-- ==========================================
+local function stopView()
+    viewTarget = nil
+    if viewConnection then viewConnection:Disconnect(); viewConnection = nil end
+    local c = player.Character
+    if c then
+        local h = c:FindFirstChild("Humanoid")
+        if h then camera.CameraSubject = h end
+    end
+end
+
+local function startView(target)
+    if not target or not target.Character then return end
+    local th = target.Character:FindFirstChild("Humanoid")
+    if not th then return end
+    viewTarget = target
+    camera.CameraSubject = th
+    if viewConnection then viewConnection:Disconnect() end
+    viewConnection = runService.Heartbeat:Connect(function()
+        if not viewTarget then return end
+        local tc = viewTarget.Character
+        if not tc then stopView(); return end
+        local tHum = tc:FindFirstChild("Humanoid")
+        if not tHum or tHum.Health <= 0 then stopView(); return end
+        camera.CameraSubject = tHum
+    end)
+end
+
+local function toggleViewMode()
+    viewEnabled = not viewEnabled
+    if viewEnabled then
+        viewBtn.Text = "View [ВКЛ] (выбери)"
+    else
+        stopView()
+    end
+    setBtnState(viewBtn, viewEnabled, "View [ВКЛ] (выбери)", "View [ВЫКЛ]")
+end
+
+local function toggleTPMode()
+    tpEnabled = not tpEnabled
+    setBtnState(tpBtn, tpEnabled, "ТП к игроку [ВКЛ]", "ТП к игроку [ВЫКЛ]")
+end
+
+local function updateAimbot()
+    if not aimbotEnabled then return end
+    local c = player.Character
+    if not c then return end
+    local mr = c:FindFirstChild("HumanoidRootPart")
+    if not mr then return end
+    local best, bd = nil, math.huge
+    for p, _ in pairs(aimbotTargets) do
+        if p.Character then
+            local head = p.Character:FindFirstChild("Head")
+            if head then
+                local d = (head.Position - mr.Position).Magnitude
+                if d < bd then bd = d; best = head end
+            end
+        end
+    end
+    if best then camera.CFrame = CFrame.new(camera.CFrame.Position, best.Position) end
+end
+
+local function toggleAimbot()
+    aimbotEnabled = not aimbotEnabled
+    if aimbotEnabled then
+        if not aimConnection then aimConnection = runService.Heartbeat:Connect(updateAimbot) end
+    else
+        if aimConnection then aimConnection:Disconnect(); aimConnection = nil end
+    end
+    setBtnState(aimbotBtn, aimbotEnabled, "AIMBOT [ВКЛ]", "AIMBOT [ВЫКЛ]")
+end
+
+local function toggleTarget(target)
+    if tpEnabled then teleportBehindPlayer(target); return end
+    if viewEnabled then startView(target); return end
+    if aimbotTargets[target] then aimbotTargets[target] = nil else aimbotTargets[target] = true end
+    for p, btn in pairs(playerButtons) do
+        if aimbotTargets[p] then
+            btn.BackgroundColor3 = COLORS.Accent
+            btn.BackgroundTransparency = 0.05
+            btn.TextColor3 = Color3.fromRGB(20, 20, 20)
+        else
+            btn.BackgroundColor3 = COLORS.AccentDark
+            btn.BackgroundTransparency = 0.35
+            btn.TextColor3 = COLORS.Text
+        end
+    end
+end
+
+local function clearAllTargets()
+    aimbotTargets = {}
+    for _, btn in pairs(playerButtons) do
+        btn.BackgroundColor3 = COLORS.AccentDark
+        btn.BackgroundTransparency = 0.35
+        btn.TextColor3 = COLORS.Text
+    end
+end
+
+local function updatePlayerList()
+    if not scrollingFrame then return end
+    for _, btn in pairs(playerButtons) do btn:Destroy() end
+    playerButtons = {}
+    local sorted = {}
+    for _, p in ipairs(players:GetPlayers()) do
+        if p ~= player then table.insert(sorted, p) end
+    end
+    table.sort(sorted, function(a, b) return a.Name < b.Name end)
+    for _, target in ipairs(sorted) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -10, 0, 32)
+        btn.Position = UDim2.new(0, 5, 0, 0)
+        btn.BackgroundColor3 = COLORS.AccentDark
+        btn.BackgroundTransparency = 0.35
+        btn.Text = target.Name
+        btn.TextColor3 = COLORS.Text
+        btn.TextSize = 14
+        btn.Font = Enum.Font.Gotham
+        btn.AutoButtonColor = false
+        btn.Parent = scrollingFrame
+        local bc = Instance.new("UICorner")
+        bc.CornerRadius = UDim.new(0, 8)
+        bc.Parent = btn
+        reg(btn, "AccentDark", "BackgroundColor3")
+        reg(btn, "Text", "TextColor3")
+        if aimbotTargets[target] then
+            btn.BackgroundColor3 = COLORS.Accent
+            btn.BackgroundTransparency = 0.05
+            btn.TextColor3 = Color3.fromRGB(20, 20, 20)
+        end
+        btn.MouseButton1Click:Connect(function() toggleTarget(target) end)
+        btn.MouseEnter:Connect(function()
+            if not aimbotTargets[target] then
+                btn.BackgroundTransparency = 0.15
+            end
+        end)
+        btn.MouseLeave:Connect(function()
+            if not aimbotTargets[target] then
+                btn.BackgroundTransparency = 0.35
+            end
+        end)
+        playerButtons[target] = btn
+    end
+    scrollingFrame.CanvasSize = #sorted > 0 and UDim2.new(0, 0, 0, #sorted * 36 + 10) or UDim2.new(0, 0, 0, 0)
+end
+
+local function updateESP()
+    for _, b in pairs(espBoxes) do b:Destroy() end
+    espBoxes = {}
+    if not espEnabled then return end
+    for _, o in ipairs(players:GetPlayers()) do
+        if o ~= player then
+            local ch = o.Character
+            if ch and ch:FindFirstChild("HumanoidRootPart") then
+                local box = Instance.new("Frame")
+                box.Size = UDim2.new(0, 0, 0, 0)
+                box.BackgroundTransparency = 0.7
+                box.BackgroundColor3 = COLORS.Accent
+                box.BorderSizePixel = 2
+                box.BorderColor3 = COLORS.Text
+                box.Visible = true
+                box.Parent = gui
+                espBoxes[o] = box
+            end
+        end
+    end
+end
+
+local function updateESPPositions()
+    if not espEnabled then return end
+    for o, box in pairs(espBoxes) do
+        local ch = o.Character
+        if ch and ch:FindFirstChild("HumanoidRootPart") and ch:FindFirstChild("Head") then
+            local r = ch.HumanoidRootPart
+            local h = ch.Head
+            local p1, o1 = camera:WorldToScreenPoint(r.Position - Vector3.new(0, 1, 0))
+            local p2, o2 = camera:WorldToScreenPoint(h.Position + Vector3.new(0, 1, 0))
+            if o1 and o2 then
+                local hh = math.abs(p2.Y - p1.Y)
+                local ww = hh * 0.6
+                local cx = (p1.X + p2.X) / 2
+                local cy = (p1.Y + p2.Y) / 2
+                box.Position = UDim2.new(0, cx - ww/2, 0, cy - hh/2)
+                box.Size = UDim2.new(0, ww, 0, hh)
+                box.Visible = true
+            else
+                box.Visible = false
+            end
+        else
+            box.Visible = false
+        end
+    end
+end
+
+local function toggleESP()
+    espEnabled = not espEnabled
+    updateESP()
+    if espEnabled then
+        if espConnection then espConnection:Disconnect() end
+        espConnection = runService.Heartbeat:Connect(updateESPPositions)
+    else
+        if espConnection then espConnection:Disconnect(); espConnection = nil end
+        for _, b in pairs(espBoxes) do b:Destroy() end
+        espBoxes = {}
+    end
+    setBtnState(espToggle, espEnabled, "ВЫКЛ", "ВКЛ")
+end
+
+-- ==========================================
+--  МЕНЮ
+-- ==========================================
+function createGUI()
+    if gui then gui:Destroy() end
+    themeList = {}
+    bindButtons = {}
+
+    gui = Instance.new("ScreenGui")
+    gui.Name = "PremiumHub"
+    gui.Parent = player:WaitForChild("PlayerGui")
+    gui.ResetOnSpawn = false
+
+    frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0.9, 0, 0.85, 0)
+    frame.Position = UDim2.new(0.05, 0, 0.075, 0)
+    frame.BackgroundColor3 = COLORS.Frame
+    frame.BackgroundTransparency = 0.05
+    frame.BorderSizePixel = 0
+    frame.ClipsDescendants = true
+    frame.Parent = gui
+    reg(frame, "Frame", "BackgroundColor3")
+
+    local corners = Instance.new("UICorner")
+    corners.CornerRadius = UDim.new(0, 24)
+    corners.Parent = frame
+
+    local shadow = Instance.new("Frame")
+    shadow.Size = UDim2.new(1, 24, 1, 24)
+    shadow.Position = UDim2.new(0, -12, 0, -12)
+    shadow.BackgroundColor3 = COLORS.Shadow
+    shadow.BackgroundTransparency = 0.5
+    shadow.BorderSizePixel = 0
+    shadow.ZIndex = 0
+    shadow.Parent = frame
+    local shc = Instance.new("UICorner")
+    shc.CornerRadius = UDim.new(0, 30)
+    shc.Parent = shadow
+
+    local topBar = Instance.new("Frame")
+    topBar.Size = UDim2.new(1, 0, 0, 50)
+    topBar.BackgroundColor3 = COLORS.Background
+    topBar.BackgroundTransparency = 0.35
+    topBar.BorderSizePixel = 0
+    topBar.Parent = frame
+    reg(topBar, "Background", "BackgroundColor3")
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(0.5, 0, 1, 0)
+    title.Position = UDim2.new(0.025, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "PREMIUMHUB"
+    title.TextColor3 = COLORS.Text
+    title.TextSize = 26
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = topBar
+    reg(title, "Text", "TextColor3")
+
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Size = UDim2.new(0.4, 0, 1, 0)
+    subtitle.Position = UDim2.new(0.55, 0, 0, 0)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "v17.0 • THEMES + BINDS"
+    subtitle.TextColor3 = COLORS.TextDim
+    subtitle.TextSize = 14
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.TextXAlignment = Enum.TextXAlignment.Right
+    subtitle.Parent = topBar
+    reg(subtitle, "TextDim", "TextColor3")
+
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 36, 0, 36)
+    closeBtn.Position = UDim2.new(1, -46, 0, 7)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = COLORS.TextDim
+    closeBtn.TextSize = 22
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Parent = topBar
+    reg(closeBtn, "TextDim", "TextColor3")
+    closeBtn.MouseButton1Click:Connect(function()
+        tweenService:Create(frame, TweenInfo.new(0.25), {BackgroundTransparency = 1}):Play()
+        frame.Visible = false
+        frame.BackgroundTransparency = 0.05
+    end)
+
+    -- ==========================================
+    --  Перетаскивание
+    -- ==========================================
+    local dragging, dragStart, startPos = false, nil, nil
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    topBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    userInput.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    userInput.InputEnded:Connect(function()
+        dragging = false
+    end)
+
+    -- ==========================================
+    --  Вкладки
+    -- ==========================================
+    local tabContainer = Instance.new("Frame")
+    tabContainer.Size = UDim2.new(1, -30, 0, 44)
+    tabContainer.Position = UDim2.new(0, 15, 0, 58)
+    tabContainer.BackgroundColor3 = COLORS.Background
+    tabContainer.BackgroundTransparency = 0.25
+    tabContainer.BorderSizePixel = 0
+    tabContainer.Parent = frame
+    local tcc = Instance.new("UICorner")
+    tcc.CornerRadius = UDim.new(0, 12)
+    tcc.Parent = tabContainer
+    reg(tabContainer, "Background", "BackgroundColor3")
+
+    local tabs = {"Основное", "Aimbot", "Визуал", "Темы", "Бинды"}
+    local tabButtons, contentFrames = {}, {}
+
+    for i, name in ipairs(tabs) do
+        local tw = 1 / #tabs
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(tw, -8, 1, -8)
+        btn.Position = UDim2.new((i-1) * tw + 0.012, 0, 0, 4)
+        btn.BackgroundColor3 = COLORS.AccentDark
+        btn.BackgroundTransparency = 0.3
+        btn.Text = name
+        btn.TextColor3 = COLORS.Text
+        btn.TextSize = 14
+        btn.Font = Enum.Font.Gotham
+        btn.Parent = tabContainer
+        local bc = Instance.new("UICorner")
+        bc.CornerRadius = UDim.new(0, 9)
+        bc.Parent = btn
+        tabButtons[i] = btn
+        reg(btn, "Text", "TextColor3")
+
+        local content = Instance.new("Frame")
+        content.Size = UDim2.new(1, -30, 1, -116)
+        content.Position = UDim2.new(0, 15, 0, 110)
+        content.BackgroundTransparency = 1
+        content.Visible = (i == 1)
+        content.Parent = frame
+        contentFrames[i] = content
+
+        btn.MouseButton1Click:Connect(function()
+            for j, cf in ipairs(contentFrames) do
+                cf.Visible = (j == i)
+                tabButtons[j].BackgroundColor3 = (j == i) and COLORS.Accent or COLORS.AccentDark
+                tabButtons[j].BackgroundTransparency = (j == i) and 0.1 or 0.3
+                tabButtons[j].TextColor3 = (j == i) and Color3.fromRGB(20, 20, 20) or COLORS.Text
+            end
+        end)
+    end
+    tabButtons[1].BackgroundColor3 = COLORS.Accent
+    tabButtons[1].BackgroundTransparency = 0.1
+    tabButtons[1].TextColor3 = Color3.fromRGB(20, 20, 20)
+
+    local mainContent = contentFrames[1]
+    local aimbotContent = contentFrames[2]
+    local visualContent = contentFrames[3]
+    local themeContent = contentFrames[4]
+    local bindsContent = contentFrames[5]
+
+    local function makePanel(parent, x, y, w, h, ttl)
+        local panel = Instance.new("Frame")
+        panel.Size = UDim2.new(w, 0, h, 0)
+        panel.Position = UDim2.new(x, 0, y, 0)
+        panel.BackgroundColor3 = COLORS.Panel
+        panel.BackgroundTransparency = 0.35
+        panel.BorderSizePixel = 0
+        panel.Parent = parent
+        local pc = Instance.new("UICorner")
+        pc.CornerRadius = UDim.new(0, 14)
+        pc.Parent = panel
+        reg(panel, "Panel", "BackgroundColor3")
+        if ttl then
+            local t = Instance.new("TextLabel")
+            t.Size = UDim2.new(1, -20, 0, 26)
+            t.Position = UDim2.new(0, 10, 0, 6)
+            t.BackgroundTransparency = 1
+            t.Text = ttl
+            t.TextColor3 = COLORS.Accent
+            t.TextSize = 14
+            t.Font = Enum.Font.GothamBold
+            t.TextXAlignment = Enum.TextXAlignment.Left
+            t.Parent = panel
+            reg(t, "Accent", "TextColor3")
+        end
+        return panel
+    end
+
+    local function createSlider(parent, y, labelText, minVal, maxVal, initVal, applyFunc)
+        local s = Instance.new("Frame")
+        s.Size = UDim2.new(1, -20, 0, 46)
+        s.Position = UDim2.new(0, 10, 0, y)
+        s.BackgroundTransparency = 1
+        s.Parent = parent
+
+        local lb = Instance.new("TextLabel")
+        lb.Size = UDim2.new(0.6, 0, 0, 20)
+        lb.BackgroundTransparency = 1
+        lb.Text = labelText
+        lb.TextColor3 = COLORS.TextDim
+        lb.TextSize = 14
+        lb.Font = Enum.Font.Gotham
+        lb.TextXAlignment = Enum.TextXAlignment.Left
+        lb.Parent = s
+        reg(lb, "TextDim", "TextColor3")
+
+        local val = Instance.new("TextLabel")
+        val.Size = UDim2.new(0.35, 0, 0, 20)
+        val.Position = UDim2.new(0.65, 0, 0, 0)
+        val.BackgroundTransparency = 1
+        val.Text = tostring(math.round(initVal))
+        val.TextColor3 = COLORS.Text
+        val.TextSize = 17
+        val.Font = Enum.Font.GothamBold
+        val.TextXAlignment = Enum.TextXAlignment.Right
+        val.Parent = s
+        reg(val, "Text", "TextColor3")
+
+        local sl = Instance.new("Frame")
+        sl.Size = UDim2.new(1, 0, 0, 18)
+        sl.Position = UDim2.new(0, 0, 0, 26)
+        sl.BackgroundColor3 = COLORS.Background
+        sl.BackgroundTransparency = 0.3
+        sl.BorderSizePixel = 0
+        sl.Parent = s
+        local slc = Instance.new("UICorner")
+        slc.CornerRadius = UDim.new(0, 12)
+        slc.Parent = sl
+        reg(sl, "Background", "BackgroundColor3")
+
+        local fill = Instance.new("Frame")
+        fill.Size = UDim2.new(0, 0, 1, 0)
+        fill.BackgroundColor3 = COLORS.Accent
+        fill.Parent = sl
+        local fc = Instance.new("UICorner")
+        fc.CornerRadius = UDim.new(0, 12)
+        fc.Parent = fill
+        reg(fill, "Accent", "BackgroundColor3")
+
+        local knob = Instance.new("Frame")
+        knob.Size = UDim2.new(0, 18, 0, 18)
+        knob.Position = UDim2.new(0, -9, 0.5, -9)
+        knob.BackgroundColor3 = COLORS.Text
+        knob.Parent = sl
+        local kc = Instance.new("UICorner")
+        kc.CornerRadius = UDim.new(1, 0)
+        kc.Parent = knob
+        reg(knob, "Text", "BackgroundColor3")
+
+        local dragging = false
+        local function upd(v)
+            v = math.clamp(v, minVal, maxVal)
+            local f = (v - minVal) / (maxVal - minVal)
+            fill.Size = UDim2.new(f, 0, 1, 0)
+            knob.Position = UDim2.new(f, -9, 0.5, -9)
+            val.Text = tostring(math.round(v))
+            applyFunc(v)
+        end
+        upd(initVal)
+
+        sl.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+        end)
+        sl.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+        end)
+        userInput.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local mp = input.Position.X
+                local ap = sl.AbsolutePosition.X
+                local w = sl.AbsoluteSize.X
+                local r = math.clamp((mp - ap) / w, 0, 1)
+                upd(minVal + r * (maxVal - minVal))
+            end
+        end)
+    end
+
+    local function makeBtn(parent, x, y, w, h, text)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(w, 0, h, 0)
+        btn.Position = UDim2.new(x, 0, y, 0)
+        btn.BackgroundColor3 = COLORS.AccentDark
+        btn.BackgroundTransparency = 0.35
+        btn.Text = text
+        btn.TextColor3 = COLORS.Text
+        btn.TextSize = 13
+        btn.Font = Enum.Font.Gotham
+        btn.AutoButtonColor = false
+        btn.Parent = parent
+        local bc = Instance.new("UICorner")
+        bc.CornerRadius = UDim.new(0, 10)
+        bc.Parent = btn
+        reg(btn, "Text", "TextColor3")
+        btn.MouseEnter:Connect(function()
+            if btn.BackgroundColor3 ~= COLORS.Accent then
+                btn.BackgroundTransparency = 0.15
+            end
+        end)
+        btn.MouseLeave:Connect(function()
+            if btn.BackgroundColor3 ~= COLORS.Accent then
+                btn.BackgroundTransparency = 0.35
+            end
+        end)
+        return btn
+    end
+
+    local function applyWS(v)
+        currentWS = math.clamp(v, 16, 40)
+        local c = player.Character
+        if c then
+            local h = c:FindFirstChild("Humanoid")
+            if h and not followEnabled and not speedBoostEnabled and not stickEnabled then h.WalkSpeed = currentWS end
+        end
+    end
+    local function applyJP(v)
+        currentJP = math.clamp(v, 0, 75)
+        local c = player.Character
+        if c then
+            local h = c:FindFirstChild("Humanoid")
+            if h then h.JumpPower = currentJP end
+        end
+    end
+
+    -- ==========================================
+    --  ОСНОВНОЕ
+    -- ==========================================
+    local leftPanel = makePanel(mainContent, 0, 0, 0.32, 1, "СКОРОСТЬ")
+    createSlider(leftPanel, 40, "WalkSpeed", 16, 40, currentWS, applyWS)
+    createSlider(leftPanel, 92, "JumpPower", 0, 75, currentJP, applyJP)
+
+    local midPanel = makePanel(mainContent, 0.335, 0, 0.32, 1, "ДЕЙСТВИЯ")
+    safeZoneBtn = makeBtn(midPanel, 0.05, 0.08, 0.9, 0.11, "SafeZone [ВЫКЛ]")
+    followBtn = makeBtn(midPanel, 0.05, 0.22, 0.9, 0.11, "Автоходьба [ВЫКЛ]")
+    speedBoostBtn = makeBtn(midPanel, 0.05, 0.36, 0.9, 0.11, "Speed Boost [ВЫКЛ]")
+    shiftLockBtn = makeBtn(midPanel, 0.05, 0.50, 0.9, 0.11, "ShiftLock [ВЫКЛ]")
+
+    local boostHint = Instance.new("TextLabel")
+    boostHint.Size = UDim2.new(0.9, 0, 0, 20)
+    boostHint.Position = UDim2.new(0.05, 0, 0.63, 0)
+    boostHint.BackgroundTransparency = 1
+    boostHint.Text = "Прыжок + D = буст"
+    boostHint.TextColor3 = COLORS.TextDim
+    boostHint.TextSize = 11
+    boostHint.Font = Enum.Font.Gotham
+    boostHint.TextXAlignment = Enum.TextXAlignment.Center
+    boostHint.Parent = midPanel
+    reg(boostHint, "TextDim", "TextColor3")
+
+    unloadBtn = makeBtn(midPanel, 0.05, 0.72, 0.9, 0.13, "⏻ ВЫГРУЗИТЬ СКРИПТ")
+    unloadBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 60)
+    unloadBtn.BackgroundTransparency = 0.15
+    unloadBtn.TextSize = 14
+    unloadBtn.Font = Enum.Font.GothamBold
+    unloadBtn.TextColor3 = Color3.fromRGB(255, 240, 245)
+
+    local rightPanel = makePanel(mainContent, 0.67, 0, 0.33, 1, "ВИЗУАЛЫ ХОДЬБЫ")
+    walkTrailBtn = makeBtn(rightPanel, 0.05, 0.08, 0.9, 0.11, "Визуалы ходьбы [ВЫКЛ]")
+
+    local trailHint = Instance.new("TextLabel")
+    trailHint.Size = UDim2.new(0.9, 0, 0, 80)
+    trailHint.Position = UDim2.new(0.05, 0, 0.22, 0)
+    trailHint.BackgroundTransparency = 1
+    trailHint.Text = "При движении под тобой\nпоявляются розовые кольца\nи неоновые искры"
+    trailHint.TextColor3 = COLORS.TextDim
+    trailHint.TextSize = 12
+    trailHint.Font = Enum.Font.Gotham
+    trailHint.TextXAlignment = Enum.TextXAlignment.Center
+    trailHint.TextYAlignment = Enum.TextYAlignment.Top
+    trailHint.TextWrapped = true
+    trailHint.Parent = rightPanel
+    reg(trailHint, "TextDim", "TextColor3")
+
+    -- ==========================================
+    --  AIMBOT
+    -- ==========================================
+    local aimLeft = makePanel(aimbotContent, 0, 0, 0.32, 1, "ЦЕЛИ")
+    aimbotBtn = makeBtn(aimLeft, 0.05, 0.08, 0.9, 0.10, "AIMBOT [ВЫКЛ]")
+    viewBtn = makeBtn(aimLeft, 0.05, 0.21, 0.9, 0.10, "View [ВЫКЛ]")
+    tpBtn = makeBtn(aimLeft, 0.05, 0.34, 0.9, 0.10, "ТП к игроку [ВЫКЛ]")
+    stickBtn = makeBtn(aimLeft, 0.05, 0.47, 0.9, 0.10, "Стик лёжа [ВЫКЛ]")
+    clearTargetBtn = makeBtn(aimLeft, 0.05, 0.60, 0.9, 0.10, "Снять все цели")
+
+    local stickHint = Instance.new("TextLabel")
+    stickHint.Size = UDim2.new(0.9, 0, 0, 40)
+    stickHint.Position = UDim2.new(0.05, 0, 0.73, 0)
+    stickHint.BackgroundTransparency = 1
+    stickHint.Text = "Выбери игроков справа →\nлежишь ЛЁЖА ПОД НОГАМИ"
+    stickHint.TextColor3 = COLORS.TextDim
+    stickHint.TextSize = 11
+    stickHint.Font = Enum.Font.Gotham
+    stickHint.TextXAlignment = Enum.TextXAlignment.Center
+    stickHint.TextWrapped = true
+    stickHint.Parent = aimLeft
+    reg(stickHint, "TextDim", "TextColor3")
+
+    local aimRight = makePanel(aimbotContent, 0.335, 0, 0.665, 1, "СПИСОК ИГРОКОВ")
+
+    local listContainer = Instance.new("Frame")
+    listContainer.Size = UDim2.new(1, -20, 1, -50)
+    listContainer.Position = UDim2.new(0, 10, 0, 40)
+    listContainer.BackgroundColor3 = COLORS.Background
+    listContainer.BackgroundTransparency = 0.4
+    listContainer.BorderSizePixel = 0
+    listContainer.ClipsDescendants = true
+    listContainer.Parent = aimRight
+    local lc = Instance.new("UICorner")
+    lc.CornerRadius = UDim.new(0, 10)
+    lc.Parent = listContainer
+    reg(listContainer, "Background", "BackgroundColor3")
+
+    scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.BorderSizePixel = 0
+    scrollingFrame.ScrollBarThickness = 6
+    scrollingFrame.ScrollBarImageColor3 = COLORS.AccentDark
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollingFrame.Parent = listContainer
+
+    local ll = Instance.new("UIListLayout")
+    ll.SortOrder = Enum.SortOrder.Name
+    ll.Padding = UDim.new(0, 4)
+    ll.Parent = scrollingFrame
+
+    -- ==========================================
+    --  ВИЗУАЛ
+    -- ==========================================
+    local espLeft = makePanel(visualContent, 0, 0, 0.32, 1, "ESP")
+
+    local espFrame = Instance.new("Frame")
+    espFrame.Size = UDim2.new(0.9, 0, 0, 50)
+    espFrame.Position = UDim2.new(0.05, 0, 0.12, 0)
+    espFrame.BackgroundTransparency = 1
+    espFrame.Parent = espLeft
+
+    local espLb = Instance.new("TextLabel")
+    espLb.Size = UDim2.new(1, 0, 0, 20)
+    espLb.BackgroundTransparency = 1
+    espLb.Text = "ESP рамки"
+    espLb.TextColor3 = COLORS.TextDim
+    espLb.TextSize = 13
+    espLb.Font = Enum.Font.Gotham
+    espLb.TextXAlignment = Enum.TextXAlignment.Left
+    espLb.Parent = espFrame
+    reg(espLb, "TextDim", "TextColor3")
+
+    espToggle = makeBtn(espFrame, 0, 0.5, 1, 0.5, "ВКЛ")
+
+    local namePanel = makePanel(visualContent, 0.335, 0, 0.32, 1, "СМЕНА НИКА")
+
+    fakeNameInput = Instance.new("TextBox")
+    fakeNameInput.Size = UDim2.new(0.9, 0, 0, 32)
+    fakeNameInput.Position = UDim2.new(0.05, 0, 0.12, 0)
+    fakeNameInput.BackgroundColor3 = COLORS.Background
+    fakeNameInput.BackgroundTransparency = 0.3
+    fakeNameInput.TextColor3 = COLORS.Text
+    fakeNameInput.PlaceholderText = "Введите ник..."
+    fakeNameInput.Text = ""
+    fakeNameInput.TextSize = 14
+    fakeNameInput.Font = Enum.Font.Gotham
+    fakeNameInput.BorderSizePixel = 0
+    fakeNameInput.ClearTextOnFocus = false
+    fakeNameInput.Parent = namePanel
+    local niC = Instance.new("UICorner")
+    niC.CornerRadius = UDim.new(0, 10)
+    niC.Parent = fakeNameInput
+    reg(fakeNameInput, "Text", "TextColor3")
+    reg(fakeNameInput, "Background", "BackgroundColor3")
+
+    fakeNameApplyBtn = makeBtn(namePanel, 0.05, 0.26, 0.43, 0.10, "Применить")
+    fakeNameResetBtn = makeBtn(namePanel, 0.52, 0.26, 0.43, 0.10, "Сбросить")
+
+    local visRight = makePanel(visualContent, 0.67, 0, 0.33, 1, "ВИЗУАЛЫ")
+    ratioBtn = makeBtn(visRight, 0.05, 0.08, 0.9, 0.10, "4:3 Растяг [ВЫКЛ]")
+    particlesBtn = makeBtn(visRight, 0.05, 0.21, 0.9, 0.10, "Кубики [ВЫКЛ]")
+    jumpCircleBtn = makeBtn(visRight, 0.05, 0.34, 0.9, 0.10, "Jump Circle [ВЫКЛ]")
+
+    -- ==========================================
+    --  ВКЛАДКА ТЕМЫ
+    -- ==========================================
+    local themePanel = makePanel(themeContent, 0, 0, 1, 1, "ВЫБОР ТЕМЫ")
+    local currentThemeLabel = Instance.new("TextLabel")
+    currentThemeLabel.Size = UDim2.new(1, -20, 0, 20)
+    currentThemeLabel.Position = UDim2.new(0, 10, 0, 34)
+    currentThemeLabel.BackgroundTransparency = 1
+    currentThemeLabel.Text = "Текущая тема: " .. currentThemeName
+    currentThemeLabel.TextColor3 = COLORS.TextDim
+    currentThemeLabel.TextSize = 13
+    currentThemeLabel.Font = Enum.Font.Gotham
+    currentThemeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    currentThemeLabel.Parent = themePanel
+    reg(currentThemeLabel, "TextDim", "TextColor3")
+
+    -- сетка тем
+    local gridFrame = Instance.new("Frame")
+    gridFrame.Size = UDim2.new(1, -20, 1, -70)
+    gridFrame.Position = UDim2.new(0, 10, 0, 60)
+    gridFrame.BackgroundTransparency = 1
+    gridFrame.Parent = themePanel
+
+    local themeGrid = Instance.new("UIGridLayout")
+    themeGrid.CellSize = UDim2.new(0, 170, 0, 90)
+    themeGrid.CellPadding = UDim2.new(0, 10, 0, 10)
+    themeGrid.SortOrder = Enum.SortOrder.LayoutOrder
+    themeGrid.Parent = gridFrame
+
+    for i, tname in ipairs(THEME_ORDER) do
+        local thm = THEMES[tname]
+        local tbtn = Instance.new("TextButton")
+        tbtn.Size = UDim2.new(0, 170, 0, 90)
+        tbtn.BackgroundColor3 = thm.Frame
+        tbtn.Text = ""
+        tbtn.AutoButtonColor = false
+        tbtn.LayoutOrder = i
+        tbtn.Parent = gridFrame
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 12)
+        c.Parent = tbtn
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = thm.Accent
+        stroke.Thickness = 3
+        stroke.Parent = tbtn
+
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Size = UDim2.new(1, 0, 0, 24)
+        nameLbl.Position = UDim2.new(0, 0, 0, 8)
+        nameLbl.BackgroundTransparency = 1
+        nameLbl.Text = tname
+        nameLbl.TextColor3 = thm.Text
+        nameLbl.TextSize = 17
+        nameLbl.Font = Enum.Font.GothamBold
+        nameLbl.Parent = tbtn
+
+        -- превью палитры
+        local preview = Instance.new("Frame")
+        preview.Size = UDim2.new(1, -20, 0, 34)
+        preview.Position = UDim2.new(0, 10, 1, -44)
+        preview.BackgroundTransparency = 1
+        preview.Parent = tbtn
+
+        local prevColors = {thm.Accent, thm.AccentDark, thm.Panel, thm.Text}
+        for j = 1, 4 do
+            local sw = Instance.new("Frame")
+            sw.Size = UDim2.new(0.2, -4, 1, 0)
+            sw.Position = UDim2.new((j-1) * 0.22, 0, 0, 0)
+            sw.BackgroundColor3 = prevColors[j]
+            sw.BorderSizePixel = 0
+            sw.Parent = preview
+            local sc = Instance.new("UICorner")
+            sc.CornerRadius = UDim.new(0, 5)
+            sc.Parent = sw
+        end
+
+        tbtn.MouseEnter:Connect(function()
+            stroke.Thickness = 5
+        end)
+        tbtn.MouseLeave:Connect(function()
+            stroke.Thickness = 3
+        end)
+        tbtn.MouseButton1Click:Connect(function()
+            applyTheme(tname)
+            currentThemeLabel.Text = "Текущая тема: " .. tname
+            -- перекрашиваем активную вкладку, чтобы не потерялась
+            for j, cf in ipairs(contentFrames) do
+                if cf.Visible then
+                    tabButtons[j].BackgroundColor3 = COLORS.Accent
+                    tabButtons[j].BackgroundTransparency = 0.1
+                    tabButtons[j].TextColor3 = Color3.fromRGB(20, 20, 20)
+                else
+                    tabButtons[j].BackgroundColor3 = COLORS.AccentDark
+                    tabButtons[j].BackgroundTransparency = 0.3
+                    tabButtons[j].TextColor3 = COLORS.Text
+                end
+            end
+        end)
+    end
+
+    -- ==========================================
+    --  ВКЛАДКА БИНДОВ
+    -- ==========================================
+    local bindsPanel = makePanel(bindsContent, 0, 0, 1, 1, "НАСТРОЙКА БИНДОВ")
+
+    local bindsHint = Instance.new("TextLabel")
+    bindsHint.Size = UDim2.new(1, -20, 0, 20)
+    bindsHint.Position = UDim2.new(0, 10, 0, 34)
+    bindsHint.BackgroundTransparency = 1
+    bindsHint.Text = "Нажми на кнопку с клавишей → затем нажми желаемую клавишу"
+    bindsHint.TextColor3 = COLORS.TextDim
+    bindsHint.TextSize = 12
+    bindsHint.Font = Enum.Font.Gotham
+    bindsHint.TextXAlignment = Enum.TextXAlignment.Left
+    bindsHint.Parent = bindsPanel
+    reg(bindsHint, "TextDim", "TextColor3")
+
+    local bindsList = Instance.new("ScrollingFrame")
+    bindsList.Size = UDim2.new(1, -20, 1, -70)
+    bindsList.Position = UDim2.new(0, 10, 0, 60)
+    bindsList.BackgroundColor3 = COLORS.Background
+    bindsList.BackgroundTransparency = 0.4
+    bindsList.BorderSizePixel = 0
+    bindsList.ScrollBarThickness = 6
+    bindsList.ScrollBarImageColor3 = COLORS.AccentDark
+    bindsList.CanvasSize = UDim2.new(0, 0, 0, #BIND_ORDER * 44 + 10)
+    bindsList.Parent = bindsPanel
+    local blc = Instance.new("UICorner")
+    blc.CornerRadius = UDim.new(0, 10)
+    blc.Parent = bindsList
+    reg(bindsList, "Background", "BackgroundColor3")
+
+    local bindsLayout = Instance.new("UIListLayout")
+    bindsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    bindsLayout.Padding = UDim.new(0, 4)
+    bindsLayout.Parent = bindsList
+
+    local bindsPadding = Instance.new("UIPadding")
+    bindsPadding.PaddingTop = UDim.new(0, 6)
+    bindsPadding.PaddingLeft = UDim.new(0, 6)
+    bindsPadding.PaddingRight = UDim.new(0, 6)
+    bindsPadding.Parent = bindsList
+
+    for i, key in ipairs(BIND_ORDER) do
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1, -8, 0, 40)
+        row.BackgroundColor3 = COLORS.Panel
+        row.BackgroundTransparency = 0.4
+        row.BorderSizePixel = 0
+        row.LayoutOrder = i
+        row.Parent = bindsList
+        local rc = Instance.new("UICorner")
+        rc.CornerRadius = UDim.new(0, 8)
+        rc.Parent = row
+        reg(row, "Panel", "BackgroundColor3")
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(0.6, 0, 1, 0)
+        lbl.Position = UDim2.new(0, 12, 0, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = BIND_LABELS[key] or key
+        lbl.TextColor3 = COLORS.Text
+        lbl.TextSize = 14
+        lbl.Font = Enum.Font.Gotham
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = row
+        reg(lbl, "Text", "TextColor3")
+
+        local kbtn = Instance.new("TextButton")
+        kbtn.Size = UDim2.new(0, 130, 0, 30)
+        kbtn.Position = UDim2.new(1, -140, 0.5, -15)
+        kbtn.BackgroundColor3 = COLORS.AccentDark
+        kbtn.BackgroundTransparency = 0.2
+        kbtn.Text = BINDS[key] and BINDS[key].Name or "?"
+        kbtn.TextColor3 = COLORS.Text
+        kbtn.TextSize = 14
+        kbtn.Font = Enum.Font.GothamBold
+        kbtn.AutoButtonColor = false
+        kbtn.Parent = row
+        local kbc = Instance.new("UICorner")
+        kbc.CornerRadius = UDim.new(0, 8)
+        kbc.Parent = kbtn
+        reg(kbtn, "Text", "TextColor3")
+
+        bindButtons[key] = kbtn
+
+        kbtn.MouseEnter:Connect(function()
+            if not isCapturingBind then
+                kbtn.BackgroundColor3 = COLORS.Accent
+                kbtn.TextColor3 = Color3.fromRGB(20, 20, 20)
+            end
+        end)
+        kbtn.MouseLeave:Connect(function()
+            if not isCapturingBind then
+                kbtn.BackgroundColor3 = COLORS.AccentDark
+                kbtn.TextColor3 = COLORS.Text
+            end
+        end)
+        kbtn.MouseButton1Click:Connect(function()
+            if isCapturingBind then
+                if capturingBindKey and bindButtons[capturingBindKey] then
+                    bindButtons[capturingBindKey].Text = BINDS[capturingBindKey].Name
+                    bindButtons[capturingBindKey].BackgroundColor3 = COLORS.AccentDark
+                    bindButtons[capturingBindKey].TextColor3 = COLORS.Text
+                end
+            end
+            isCapturingBind = true
+            capturingBindKey = key
+            kbtn.Text = "Нажми клавишу..."
+            kbtn.BackgroundColor3 = COLORS.Accent
+            kbtn.TextColor3 = Color3.fromRGB(20, 20, 20)
+        end)
+    end
+
+    -- ==========================================
+    --  Подключения
+    -- ==========================================
+    safeZoneBtn.MouseButton1Click:Connect(toggleSafeZone)
+    followBtn.MouseButton1Click:Connect(toggleFollow)
+    speedBoostBtn.MouseButton1Click:Connect(toggleSpeedBoost)
+    shiftLockBtn.MouseButton1Click:Connect(toggleShiftLock)
+    aimbotBtn.MouseButton1Click:Connect(toggleAimbot)
+    viewBtn.MouseButton1Click:Connect(toggleViewMode)
+    tpBtn.MouseButton1Click:Connect(toggleTPMode)
+    stickBtn.MouseButton1Click:Connect(toggleStick)
+    espToggle.MouseButton1Click:Connect(toggleESP)
+    clearTargetBtn.MouseButton1Click:Connect(clearAllTargets)
+    ratioBtn.MouseButton1Click:Connect(toggleRatio43)
+    particlesBtn.MouseButton1Click:Connect(toggleParticles)
+    jumpCircleBtn.MouseButton1Click:Connect(toggleJumpCircle)
+    walkTrailBtn.MouseButton1Click:Connect(toggleWalkTrail)
+    unloadBtn.MouseButton1Click:Connect(unloadScript)
+
+    fakeNameApplyBtn.MouseButton1Click:Connect(function()
+        fakeName = fakeNameInput.Text
+        applyFakeName()
+    end)
+    fakeNameResetBtn.MouseButton1Click:Connect(function()
+        fakeName = ""
+        fakeNameInput.Text = ""
+        applyFakeName()
+    end)
+    fakeNameInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            fakeName = fakeNameInput.Text
+            applyFakeName()
+        end
+    end)
+end
+
+-- ==========================================
+--  СОБЫТИЯ / РЕСПАВН / БИНДЫ / ЗАПУСК
+-- ==========================================
+players.PlayerAdded:Connect(updatePlayerList)
+players.PlayerRemoving:Connect(function(rem)
+    aimbotTargets[rem] = nil
+    if followTarget == rem then stopFollow() end
+    if viewTarget == rem then stopView() end
+    updatePlayerList()
+end)
+
+runService.Heartbeat:Connect(function()
+    local c = player.Character
+    if c then
+        local h = c:FindFirstChild("Humanoid")
+        if h then
+            if not followEnabled and not speedBoostEnabled and not stickEnabled then
+                if h.WalkSpeed ~= currentWS then h.WalkSpeed = currentWS end
+            end
+            if h.JumpPower ~= currentJP then h.JumpPower = currentJP end
+        end
+    end
+end)
+
+player.CharacterAdded:Connect(function(char)
+    if frame then frame.Visible = true end
+    if safeZoneEnabled and savedPosition then
+        local h = char:WaitForChild("Humanoid")
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        task.wait(0.5)
+        if hrp and hrp.Parent and h.Health > 0 then hrp.CFrame = CFrame.new(savedPosition) end
+        destroySafePlatform()
+        safeZoneEnabled = false
+        savedPosition = nil
+        setBtnState(safeZoneBtn, false, "SafeZone [ВКЛ]", "SafeZone [ВЫКЛ]")
+    end
+    if followEnabled then stopFollow() end
+    if viewTarget then stopView() end
+    if shiftLockEnabled then
+        if shiftLockConnection then shiftLockConnection:Disconnect(); shiftLockConnection = nil end
+        task.wait(0.3)
+        startShiftLock()
+    end
+    local h = char:WaitForChild("Humanoid")
+    h.WalkSpeed = currentWS
+    h.JumpPower = currentJP
+    if fakeName ~= "" then task.wait(0.3); applyFakeName() end
+    if jumpCircleEnabled then
+        if jumpCircleConnection then jumpCircleConnection:Disconnect() end
+        jumpCircleConnection = h.StateChanged:Connect(function(_, newState)
+            if newState == Enum.HumanoidStateType.Jumping or newState == Enum.HumanoidStateType.Freefall then
+                spawnJumpCircle()
+            end
+        end)
+    end
+end)
+
+-- ==========================================
+--  ОБРАБОТКА КЛАВИШ (в т.ч. захват биндов)
+-- ==========================================
+userInput.InputBegan:Connect(function(input, gp)
+    -- Режим назначения бинда
+    if isCapturingBind then
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            local newKey = input.KeyCode
+            if capturingBindKey then
+                -- Проверка на конфликт с другими биндами
+                for k, v in pairs(BINDS) do
+                    if k ~= capturingBindKey and v == newKey then
+                        BINDS[k] = nil  -- или оставить, но снять конфликт
+                        BINDS[k] = Enum.KeyCode.Unknown
+                    end
+                end
+                BINDS[capturingBindKey] = newKey
+                if bindButtons[capturingBindKey] then
+                    bindButtons[capturingBindKey].Text = newKey.Name
+                    bindButtons[capturingBindKey].BackgroundColor3 = COLORS.AccentDark
+                    bindButtons[capturingBindKey].TextColor3 = COLORS.Text
+                end
+            end
+            isCapturingBind = false
+            capturingBindKey = nil
+            return
+        end
+        return
+    end
+
+    if gp then return end
+    local k = input.KeyCode
+    if k == BINDS.TOGGLE_MENU and frame then
+        if frame.Visible then
+            tweenService:Create(frame, TweenInfo.new(0.25), {BackgroundTransparency = 1}):Play()
+            task.wait(0.05)
+            frame.Visible = false
+            frame.BackgroundTransparency = 0.05
+        else
+            frame.Visible = true
+            frame.BackgroundTransparency = 1
+            tweenService:Create(frame, TweenInfo.new(0.25), {BackgroundTransparency = 0.05}):Play()
+        end
+    end
+    if k == BINDS.TOGGLE_AIMBOT then toggleAimbot() end
+    if k == BINDS.TOGGLE_SAFEZONE then toggleSafeZone() end
+    if k == BINDS.TOGGLE_FOLLOW then toggleFollow() end
+    if k == BINDS.TOGGLE_VIEW then toggleViewMode() end
+    if k == BINDS.TOGGLE_TP then toggleTPMode() end
+    if k == BINDS.TOGGLE_BOOST then toggleSpeedBoost() end
+    if k == BINDS.TOGGLE_SHIFTLOCK then toggleShiftLock() end
+    if k == BINDS.TOGGLE_STICK then toggleStick() end
+    if k == BINDS.TOGGLE_WALKTRAIL then toggleWalkTrail() end
+    if k == BINDS.TOGGLE_43 then toggleRatio43() end
+    if k == BINDS.UNLOAD then unloadScript() end
+end)
+
+createSplash()
+task.wait(1)
+updatePlayerList()
+
+print("PremiumHub v17.0 загружен! Темы в отдельной вкладке, бинды настраиваются.")</div>
+                        <!-- КОНЕЦ ПОЛНОГО СКРИПТА -->
+                    </div>
+                </div>
+
+                <div class="cube-container anim-item">
+                    <div class="cube-wrapper" id="cube-wrapper">
+                        <div class="cube">
+                            <div class="face front">s</div>
+                            <div class="face back">H</div>
+                            <div class="face right">u</div>
+                            <div class="face left">b</div>
+                            <div class="face top">V17</div>
+                            <div class="face bottom">Lua</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="scripts" class="tab-content">
+            <h1 class="anim-item" style="font-size: 40px;">Скрипты</h1>
+        </section>
+
+        <section id="about" class="tab-content">
+            <h1 class="anim-item" style="font-size: 40px;">О проекте</h1>
+        </section>
+    </main>
+
+    <div id="toast">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Скрипт скопирован!
+    </div>
+
+    <script>
+        const glow = document.getElementById('cursor-glow');
+        const cubeWrapper = document.getElementById('cube-wrapper');
+        let targetX = window.innerWidth / 2;
+        let targetY = window.innerHeight / 2;
+        let currentGlowX = targetX;
+        let currentGlowY = targetY;
+        let currentCubeX = 0;
+        let currentCubeY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            targetX = e.clientX;
+            targetY = e.clientY;
+        });
+
+        function renderSmoothFrame() {
+            const ease = 0.08;
+            currentGlowX += (targetX - currentGlowX) * ease;
+            currentGlowY += (targetY - currentGlowY) * ease;
+            glow.style.transform = `translate3d(${currentGlowX}px, ${currentGlowY}px, 0) translate(-50%, -50%)`;
+
+            if(window.innerWidth > 900) {
+                const targetRotX = (window.innerHeight / 2 - targetY) / 15;
+                const targetRotY = (window.innerWidth / 2 - targetX) / 15;
+                currentCubeX += (targetRotX - currentCubeX) * ease;
+                currentCubeY += (targetRotY - currentCubeY) * ease;
+                cubeWrapper.style.transform = `rotateX(${currentCubeX}deg) rotateY(${currentCubeY}deg)`;
+            }
+            requestAnimationFrame(renderSmoothFrame);
+        }
+        requestAnimationFrame(renderSmoothFrame);
+
+        const bgContainer = document.getElementById('bg-shapes');
+        const symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '▲', '△', '►', '◄'];
+        for (let i = 0; i < 40; i++) {
+            let shape = document.createElement('div');
+            shape.className = 'bg-shape';
+            shape.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+            shape.style.fontSize = Math.random() * 40 + 20 + 'px';
+            shape.style.left = Math.random() * 100 + 'vw';
+            shape.style.top = Math.random() * 100 + 'vh';
+            shape.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            shape.style.animationDelay = -(Math.random() * 10) + 's';
+            if(Math.random() > 0.5) {
+                shape.style.color = '#00f5d4';
+                shape.style.textShadow = '0 0 10px #00f5d4, 0 0 20px #00b4d8';
+            } else {
+                shape.style.color = '#0077b6';
+                shape.style.textShadow = '0 0 10px #0077b6, 0 0 20px #00b4d8';
+            }
+            bgContainer.appendChild(shape);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
+            });
+
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            setTimeout(() => {
+                document.getElementById(tabId).classList.add('active');
+            }, 100);
+        }
+
+        function copyCode() {
+            const btn = document.getElementById('copy-btn');
+            const btnText = btn.querySelector('span');
+            const codeText = document.getElementById('script-code').innerText;
+            
+            if (btn.classList.contains('success')) return;
+
+            const textarea = document.getElementById('hidden-textarea');
+            textarea.value = codeText;
+            textarea.select();
+            textarea.setSelectionRange(0, 999999);
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    btn.classList.add('success');
+                    btnText.innerText = "Скопировано!";
+                    const toast = document.getElementById('toast');
+                    toast.classList.add('show');
+                    
+                    setTimeout(() => {
+                        btn.classList.remove('success');
+                        btnText.innerText = "Скопировать";
+                        toast.classList.remove('show');
+                    }, 2500);
+                }
+            } catch (err) {
+                alert('Ошибка при копировании. Выделите код вручную.');
+            }
+        }
+    </script>
+</body>
+</html>
